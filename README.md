@@ -195,3 +195,24 @@ Every discussion repo is configured with GitHub's discoverability features:
 
 MIT. The template, skill, and personas are open source. Discussion content
 belongs to its authors.
+
+<!-- amplify:auto -->
+![Status](https://img.shields.io/badge/status-draft-yellow) ![Contributions](https://img.shields.io/badge/open_contributions-0-blue)
+
+
+## Chapters
+
+
+## Contribute
+
+This is an [amplify](https://github.com/arnac-io/amplify) discussion. To contribute:
+
+1. Install [Claude Code](https://claude.ai/code) or [Cursor](https://cursor.com)
+2. Clone this repo
+3. The built-in amplify skill guides you — just start talking about the content
+
+Or read the chapters above and [open a PR](../../pulls) with your contribution.
+
+---
+*Powered by [amplify](https://github.com/arnac-io/amplify) — dense documents become conversations.*
+<!-- /amplify:auto -->
