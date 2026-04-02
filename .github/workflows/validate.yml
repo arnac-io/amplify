@@ -1,0 +1,67 @@
+name: Validate Discussion
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "discussion/**"
+  pull_request:
+    paths:
+      - "discussion/**"
+      - "contributions/**"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate meta.yaml
+        run: |
+          set -e
+
+          if [ ! -f discussion/meta.yaml ]; then
+            echo "::error::discussion/meta.yaml not found"
+            exit 1
+          fi
+
+          # Check required fields
+          for field in title author status; do
+            VALUE=$(grep "^${field}:" discussion/meta.yaml | sed "s/^${field}: *//" | sed 's/^"//' | sed 's/"$//')
+            if [ -z "$VALUE" ]; then
+              echo "::error::discussion/meta.yaml missing required field: $field"
+              exit 1
+            fi
+          done
+
+          # Validate status
+          STATUS=$(grep '^status:' discussion/meta.yaml | sed 's/^status: *//')
+          if ! echo "$STATUS" | grep -qE '^(draft|active|closed)$'; then
+            echo "::error::Invalid status '$STATUS' — must be draft, active, or closed"
+            exit 1
+          fi
+
+          echo "meta.yaml valid"
+
+      - name: Validate chapters
+        run: |
+          set -e
+
+          if [ -d discussion/chapters ]; then
+            for f in discussion/chapters/*.md; do
+              [ -f "$f" ] || continue
+              if [ ! -s "$f" ]; then
+                echo "::warning::Empty chapter: $f"
+              fi
+            done
+          fi
+
+          echo "chapters valid"
+
+      - name: Validate README
+        run: |
+          if [ ! -f README.md ]; then
+            echo "::error::README.md not found"
+            exit 1
+          fi
+          echo "README.md present"

@@ -1,0 +1,58 @@
+name: Sync Repo Metadata
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "discussion/meta.yaml"
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update repo metadata
+        run: |
+          set -e
+
+          TITLE=$(grep '^title:' discussion/meta.yaml | sed 's/^title: *//' | sed 's/^"//' | sed 's/"$//')
+          STATUS=$(grep '^status:' discussion/meta.yaml | sed 's/^status: *//')
+
+          # Read TL;DR (first non-heading, non-empty line from README)
+          TLDR=$(sed -n '/^<!-- amplify:auto -->/q;p' README.md | grep -v '^#' | grep -v '^$' | head -1)
+
+          # Build description
+          DESCRIPTION="Discussion: ${TITLE}"
+          if [ -n "$TLDR" ]; then
+            # Truncate to fit GitHub's 350 char limit
+            DESCRIPTION=$(echo "$DESCRIPTION — $TLDR" | cut -c1-350)
+          fi
+
+          # Update description
+          gh repo edit --description "$DESCRIPTION"
+
+          # Read tags from meta.yaml
+          TAGS=$(grep -A 100 '^tags:' discussion/meta.yaml | grep '^  *- ' | sed 's/^  *- *//' | tr '\n' ' ')
+
+          # Always include amplify-discussion topic
+          TOPIC_ARGS="--add-topic amplify-discussion"
+
+          # Add status topic (remove others first)
+          for s in draft active closed; do
+            gh repo edit --remove-topic "amplify-$s" 2>/dev/null || true
+          done
+          TOPIC_ARGS="$TOPIC_ARGS --add-topic amplify-$STATUS"
+
+          # Add user tags
+          for tag in $TAGS; do
+            tag=$(echo "$tag" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]/-/g')
+            TOPIC_ARGS="$TOPIC_ARGS --add-topic $tag"
+          done
+
+          eval "gh repo edit $TOPIC_ARGS"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

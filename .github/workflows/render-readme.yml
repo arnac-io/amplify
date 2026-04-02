@@ -1,0 +1,103 @@
+name: Sync README
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "discussion/**"
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Sync auto-generated README sections
+        run: |
+          set -e
+
+          # If no README exists yet, skip (skill creates it on discussion init)
+          [ -f README.md ] || exit 0
+
+          # Read metadata
+          TITLE=$(grep '^title:' discussion/meta.yaml | sed 's/^title: *//' | sed 's/^"//' | sed 's/"$//')
+          STATUS=$(grep '^status:' discussion/meta.yaml | sed 's/^status: *//')
+          AUTHOR=$(grep '^author:' discussion/meta.yaml | sed 's/^author: *//' | sed 's/^"//' | sed 's/"$//')
+
+          # Status badge color
+          case "$STATUS" in
+            draft)  COLOR="yellow" ;;
+            active) COLOR="green" ;;
+            closed) COLOR="red" ;;
+            *)      COLOR="gray" ;;
+          esac
+
+          # Build chapter TOC
+          CHAPTERS=""
+          if [ -d discussion/chapters ]; then
+            for f in $(ls discussion/chapters/*.md 2>/dev/null | sort); do
+              [ -f "$f" ] || continue
+              CH_TITLE=$(head -5 "$f" | grep '^# ' | head -1 | sed 's/^# //')
+              if [ -z "$CH_TITLE" ]; then
+                CH_TITLE=$(basename "$f" .md)
+              fi
+              CHAPTERS="${CHAPTERS}- [${CH_TITLE}](${f})\n"
+            done
+          fi
+
+          # Count contributions
+          OPEN_PRS=$(gh pr list --state open --json number --jq length 2>/dev/null || echo "0")
+
+          # Build the auto-generated block
+          AUTO_BLOCK=$(cat <<AUTOEOF
+          <!-- amplify:auto -->
+          ![Status](https://img.shields.io/badge/status-${STATUS}-${COLOR}) ![Contributions](https://img.shields.io/badge/open_contributions-${OPEN_PRS}-blue)
+          ${AUTHOR:+**Author:** ${AUTHOR}}
+
+          ## Chapters
+
+          $(echo -e "$CHAPTERS")
+          ## Contribute
+
+          This is an [amplify](https://github.com/arnac-io/amplify) discussion. To contribute:
+
+          1. Install [Claude Code](https://claude.ai/code) or [Cursor](https://cursor.com)
+          2. Clone this repo
+          3. The built-in amplify skill guides you — just start talking about the content
+
+          Or read the chapters above and [open a PR](../../pulls) with your contribution.
+
+          ---
+          *Powered by [amplify](https://github.com/arnac-io/amplify) — dense documents become conversations.*
+          <!-- /amplify:auto -->
+          AUTOEOF
+          )
+
+          # Clean heredoc indentation
+          AUTO_BLOCK=$(echo "$AUTO_BLOCK" | sed 's/^          //')
+
+          # Replace existing auto block, or append if not present
+          if grep -q '<!-- amplify:auto -->' README.md; then
+            # Remove old auto block and insert new one
+            sed -i '/<!-- amplify:auto -->/,/<!-- \/amplify:auto -->/d' README.md
+            echo "$AUTO_BLOCK" >> README.md
+          else
+            # Append auto block
+            echo "" >> README.md
+            echo "$AUTO_BLOCK" >> README.md
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          git diff --cached --quiet || git commit -m "docs: sync README from discussion content"
+          git push
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

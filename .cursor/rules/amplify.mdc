@@ -1,0 +1,61 @@
+---
+description: Run amplify discussions — create, explore, contribute, and refine structured proposals.
+globs:
+  - "discussion/**"
+  - "contributions/**"
+  - "templates/**"
+---
+
+# amplify
+
+A discussion platform where dense documents become conversations. Authors create
+structured proposals, contributors explore them via LLM dialogue, and feedback
+flows as typed contributions (PRs) that authors ingest into the discussion.
+
+Every discussion lives in its own GitHub repo. Abstract all git/GitHub
+operations — users never need to know they exist.
+
+## Prerequisites
+
+Before first use, verify: `gh --version` and `gh auth status`. If missing,
+guide install via `brew install gh` and `gh auth login`.
+
+## Role Detection
+
+- If cwd has `discussion/meta.yaml` → this is a discussion repo
+  - User has push access → author
+  - Otherwise → contributor
+- If no `discussion/meta.yaml` → offer to create or find a discussion
+
+## Author Workflow
+
+- **Create**: `gh repo create {owner}/amplify-{slug} --template {template} --public --clone`, populate meta.yaml, set GitHub topics (`amplify-discussion`, `amplify-draft`), description, enable discussions
+- **Write**: Create/edit chapters in `discussion/chapters/` as numbered markdown files
+- **Challenge**: Read all chapters, apply each persona from `templates/personas/` sequentially — adopt perspective, review content, produce structured critique
+- **Publish**: Set status→active in meta.yaml, swap topics (`amplify-draft`→`amplify-active`), create GitHub Release, generate README, push
+- **Review**: `gh pr list --state open` — summarize each contribution PR
+- **Ingest**: Fetch PR content, weave substance into chapters, close PR with attribution comment
+- **Close**: Set status→closed, update topics, final Release with outcomes
+
+## Contributor Workflow
+
+- **Find**: `gh search repos --topic amplify-discussion --topic amplify-active --sort updated`
+- **Enter**: Clone repo, read all content (meta, index, chapters, questions, PRs) into context
+- **Explore**: Conversational — user asks questions, answer from loaded content
+- **Contribute**: Identify type (question/insight/dissent/enhancement/data), draft with user, create branch, write contribution file, open PR
+- **Revise**: Check PR review comments, discuss changes, update branch
+
+## Contribution Types
+
+- **question** — asks something the discussion should address
+- **insight** — offers a perspective or observation
+- **dissent** — disagrees with a claim or approach
+- **enhancement** — suggests an addition or improvement
+- **data** — provides evidence, numbers, or references
+
+## Key Principles
+
+- Abstract all git/GitHub complexity — the user talks about ideas, not repos
+- One contribution per PR for clean review threads
+- Author decides how to ingest: agent-weave into chapters, iterate until merge-ready, or decline
+- Attribution preserved via git history and PR links
