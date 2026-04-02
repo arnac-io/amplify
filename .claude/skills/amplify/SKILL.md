@@ -86,7 +86,7 @@ Trigger: user wants to add, edit, or restructure discussion content
 Trigger: user says "challenge this", "stress test", "poke holes"
 
 1. Read all chapters into context
-2. For each persona in `templates/personas/`:
+2. For each persona in `personas/`:
    - Adopt the persona's perspective (read the persona's .md file for the system
      prompt)
    - Review the full discussion content through that lens
@@ -111,8 +111,8 @@ reviewer that focuses on..."
 
 1. Discuss with the user: what perspective should this persona take? What should
    it focus on? What kind of discussion is it useful for?
-2. Create the persona file at `templates/personas/{name}.md` following the
-   standard format:
+2. Create the persona file at `personas/{name}.md` following the standard
+   format:
    ```yaml
    ---
    name: { name }

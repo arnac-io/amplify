@@ -31,7 +31,7 @@ guide install via `brew install gh` and `gh auth login`.
 
 - **Create**: `gh repo create {owner}/amplify-{slug} --template {template} --public --clone`, populate meta.yaml, set GitHub topics (`amplify-discussion`, `amplify-draft`), description, enable discussions
 - **Write**: Create/edit chapters in `discussion/chapters/` as numbered markdown files
-- **Challenge**: Read all chapters, apply each persona from `templates/personas/` sequentially — adopt perspective, review content, produce structured critique
+- **Challenge**: Read all chapters, apply each persona from `personas/` sequentially — adopt perspective, review content, produce structured critique
 - **Publish**: Set status→active in meta.yaml, swap topics (`amplify-draft`→`amplify-active`), create GitHub Release, generate README, push
 - **Review**: `gh pr list --state open` — summarize each contribution PR
 - **Ingest**: Fetch PR content, weave substance into chapters, close PR with attribution comment

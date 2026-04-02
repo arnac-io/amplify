@@ -170,7 +170,7 @@ discussion/
   chapters/               Numbered markdown files — the substance
   questions.yaml           Open questions for contributors to address
 contributions/            Ingested contributions (from merged PRs)
-templates/personas/       Challenge personas (13 built-in + custom)
+.claude/skills/amplify/personas/   Challenge personas (13 built-in + custom)
 ```
 
 The README is the discussion's landing page — auto-synced from content so anyone
